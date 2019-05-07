@@ -1,0 +1,71 @@
+********************************** INJECTION DES DEPENDANCES****************************************
+
+- L'injection de dépendances (Dependency injection) est un mécanisme qui permet d'implémenter le principe de l'inversion de contrôle (souvent abrégé par l'acronyme IoC).
+
+- Elle consiste à injecter dynamiquement les dépendances pour différentes classes en s'appuyant sur un ou plusieurs modules. Ainsi, les dépendances entre des classes d'implémentation et une interface ne sont plus exprimées dans le code de manière statique (Dependency Inversion) mais déterminées dynamiquement.
+
+- Pour éviter de rajouter la responsabilité d'instanciation des classes (car tous opérateurs "new" constituent un vecteur de couplage fort) et pour réduire les dépendances entre les classes, l'injection de dépendances se place comme une solution adaptée. ceci afin de garantir tant que possible le couplage faible au depit du couplage fort.
+
+- pour pouvoir utiliser l'injection de dépendances, il est obligatoire de penser l'architecture de son logiciel avec des interfaces et de coupler leurs implémentations grâce à des modules.
+
+- Il existe 4 types d'injections de dépendances :
+	- injection par constructeur ;
+	- injection par interface ;
+	- injection par mutateur ;
+	- injection par champs.
+
+- Les bibliothèques de DI les plus connues sont : Guice (À l'époque, cette bibliothèque avait été développée par Google pour tirer parti de toute la puissance de Java (à partir de la 1.5), notamment sur les annotations et les génériques. Ceci pour faire face à une alternative vieillissante, Spring), Dragger, CDI, Spring
+
+********************************** GOOGLE GUICE ****************************************
+
+- Google Guice construit les instances des classes d'une application et satisfait leurs dépendances. Il utilise les annotations du package "com.google.inject" ou, plus standard, "javax.inject". Google Guice est compatible avec les annotations com.google.inject et javax.inject
+
+- Leurs annotations Inject identifient les constructeurs (injection par constructeur) ou les attributs à injecter (injection par champs).
+
+- Utiliser l'annotation "@Inject" sur le constructeur permet de créer une nouvelle instance des paramètres du constructeur
+
+- Utiliser l'annotation @Inject sur l'attribut d'une classe permet de créer une nouvelle instance de l'attribut
+
+- Lorsqu'une nouvelle instance est requise par l'application, Google Guice satisfera les dépendances nécessaires en invoquant les constructeurs voulus. Donc, tout se passe à l'exécution !
+
+- Pour satisfaire une dépendance avec Guice Une nouvelle classe (module) doit étendre la classe AbstractModule de la bibliothèque Google Guice.
+
+- Cette dernière classe nous oblige à mettre en œuvre la méthode configure(). C'est dans cette méthode qu'une interface ou une classe abstraite renseigne sa classe concrète pour pouvoir être instanciée.
+
+- Ceci se fait très simplement avec des méthodes de la classe AbstractModule : bind(...) pour renseigner l'interface ou la classe abstraite, suivi de to(...) pour renseigner la classe concrète.
+	- Exemple : bind(AbstractPayment.class).to(CreditCardPayment.class);
+
+- Pour utiliser ce module, dans la classe principale de l'application avec la méthode main, il faut créer l'injecteur (Injector) avec la méthode statique Guice.createInjector(...) en passant en paramètre une instance du module Guice implémentant AbstractModule; ceci pour pouvoir injecter toutes les instances nécessaires dans une classe et l'utiliser
+	- Exemple :  	final Injector injector = Guice.createInjector(new PizzaManagerModuleGuice());
+    			final AppPizzaManagerGuice app =injector.getInstance(AppPizzaManagerGuice.class);
+    			app.run();
+
+- Imaginez deux attributs du même type (par exemple, d'une classe abstraite) mais pour lesquels vous désirez des implémentations différentes.
+
+- La fonctionnalité de base consiste à lier une classe abstraite (ou une interface) à une classe concrète (ou d'implémentation). À partir de ce constat, il ne serait pas possible de fournir deux implémentations différentes.
+
+-Si on tente de faire ceci : bind(AbstractPayment.class).to(PayPalPayment.class); bind(AbstractPayment.class).to(CreditCardPayment.class); La bibliothèque prendra en compte le dernier « binding ». Toutes les injections pour AbstractPayment seront instanciées par CreditCardPayment.
+
+- Pour pallier ce problème, une des solutions les plus communes est la possibilité de nommer ses injections grâce à l'annotation @Named("your-name") (bind(AbstractPayment.class).annotatedWith(Names.named("creditcard")).to(CreditCardPayment.class);),ou de créer ses propres annotations (en analogie avec les Qualifiers en CDI)
+
+- Et l'utilisation dans la classe qui injecte sera : @Inject @Named("creditcard") AbstractPayment creditCard;
+
+- La séconde solution du problème consiste à créer une nouvelle annotation (public @interface PayPal{}) en spécifiant que c'est une annotation de type « binding » (@BindingAnnotation
+ en analogie avec @Qualifier chez CDI), qu'elle peut s'appliquer sur des attributs, des paramètres et des méthodes (@Target({FIELD, PARAMETER, METHOD})
+)et qu'elle est interprétée à l'exécution du programme (@Retention(RUNTIME)).
+
+- Ensuite créer une nouvelle méthode annotée par @Provides et @PayPal en renvoyant une instance de la classe d'implémentation voulue pour le type retourné de la méthode.
+	- Exemple : @Provides @PayPal public AbstractPayment providePayPal() {
+    			return new PayPalPayment();
+  			}
+- Ains remplacer @Named("paypal") par @payPal
+
+- Parfois, il est nécessaire de vouloir retourner plusieurs instances différentes pour une injection. Il existe aussi plusieurs possibilités, une de ces options étant l'injection d'un attribut grâce à Provider<T>. 
+
+- Provider<T> crée une nouvelle instance de T à chaque invocation de la méthode get() sur l'attribut.
+	- Exemple : @Inject Provider<Payment> paymentProvider;
+		    private Payment getPayment(double total) {
+    			final Payment payment = paymentProvider.get();
+    			payment.setTotal(total);
+    			return payment;
+  			}
