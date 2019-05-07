@@ -1,0 +1,44 @@
+********************************** INTRODUCTION ****************************************
+
+- Apache Thrift a été développé à l'origine par l'équipe de développement de Facebook et est actuellement maintenu par Apache.
+
+- Thrift utilise un langage de description d'interface (IDL) spécial pour définir les types de données et les interfaces de service qui sont stockés en tant que fichiers .thrift et utilisés ultérieurement comme entrée par le compilateur pour générer le code source des logiciels client et serveur communiquant via différents langages de programmation.
+
+- Afin d'user de Apache Thrift, il faut la librairie "libthrift"
+
+- Le fichier .thrift doit etre partagé entre le client et le serveur
+
+- thrift -r -out destination_path --gen destination_language idl_file.thrift
+
+********************************** IDL (INTERFACE DESCRIPTION LANGUAGE) ******************************
+
+-  IDL permet de définir des interfaces de communication dans un langage neutre.
+
+- Les types de base de Apache Thrift sont :
+	- bool : une valeur booléenne (true ou false)
+	- octet : un entier signé de 8 bits
+	- i16 : un entier signé de 16 bits
+	- i32 : un entier signé de 32 bits
+	- i64 - un entier signé de 64 bits
+	- double : un nombre à virgule flottante de 64 bits
+	- string : une chaîne de texte codée à l'aide du codage UTF-8
+	- binary : une séquence d'octets non codés
+	- optionnel : type optionnel de Java 8
+
+- Les structures Thrift sont l'équivalent des classes dans les langages POO mais sans héritage. Une structure a un ensemble de champs fortement typés, chacun avec un nom unique comme identifiant.
+	- Format :
+		struct name_of_struct {
+			1: identifier_type identifier1,
+			2: identifier_type identifier2,
+			3: other_structure identifier3		
+		}
+
+- Les conteneurs d'épargne sont des conteneurs fortement typés:
+	- liste : une liste ordonnée d'éléments (list<identifier_type | name_of_struct>)
+	- set : un ensemble non ordonné d'éléments uniques (set<identifier_type | name_of_struct>)
+	- map <type1, type2> : une carte de clés de valeurs strictement uniques (map<identifier_type | name_of_struct, identifier_type | name_of_struct>)
+	- Les éléments de conteneur peuvent être de n'importe quel type Thrift valide.
+
+- Les exceptions sont fonctionnellement équivalentes aux structures , sauf qu'elles héritent des exceptions natives. le mot clé "exception" est utilisé à la place de "struct"
+
+- 
